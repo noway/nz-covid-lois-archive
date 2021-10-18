@@ -1,5 +1,8 @@
 import fetch from "node-fetch";
 import cheerio from "cheerio";
+import fromNdjson from "from-ndjson";
+import ndjson from "ndjson";
+import { createWriteStream, readFileSync } from "node:fs";
 interface LOI {
   "Location name": string;
   Address: string;
@@ -36,7 +39,7 @@ async function fetchLois() {
   });
 
   const trs = $(table).find("tbody tr");
-  const lois: Partial<ResultLOI>[] = []
+  const lois: Partial<ResultLOI>[] = [];
   trs.each((i, tr) => {
     const tds = $(tr).find("td");
     const loi: Partial<ResultLOI> = {};
@@ -57,13 +60,40 @@ async function fetchLois() {
       const text = $(td).text().trim();
       loi[heading] = text;
     });
-    lois.push(loi)
+    lois.push(loi);
   });
-  return lois
+  return lois;
+}
+
+function getId(loi: Partial<ResultLOI>): string {
+  return `${loi["Location name"]}${loi["Start date"]}`
 }
 
 async function main() {
-  fetchLois();
+  const existingLois: Partial<ResultLOI>[] = fromNdjson(
+    readFileSync("all-lois.ndjson", "utf8")
+  );
+  const existingLoiIds = [
+    ...new Set(
+      existingLois.map(getId)
+    ),
+  ];
+  console.log("existingLoiIds.length", existingLoiIds.length);
+
+  const lois = await fetchLois();
+
+  const stringifier = ndjson.stringify();
+  stringifier.pipe(createWriteStream("all-lois.ndjson"));
+  stringifier.pipe(process.stdout);
+  for (const loi of existingLois) {
+    await new Promise((resolve) => stringifier.write(loi, "utf8", resolve));
+  }
+  for (const loi of lois) {
+    if (existingLoiIds.includes(getId(loi))) {
+      continue;
+    }
+    await new Promise((resolve) => stringifier.write(loi, "utf8", resolve));
+  }
 }
 
 main();
