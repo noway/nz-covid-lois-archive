@@ -3,6 +3,7 @@ import cheerio from "cheerio";
 import fromNdjson from "from-ndjson";
 import ndjson from "ndjson";
 import { createWriteStream, readFileSync } from "node:fs";
+import simpleGit from "simple-git";
 interface LOI {
   "Location name": string;
   Address: string;
@@ -94,6 +95,19 @@ async function main() {
     }
     await new Promise((resolve) => stringifier.write(loi, "utf8", resolve));
   }
+
+  stringifier.end(() => {
+    // push to git
+    simpleGit()
+      .pull()
+      .add("./*")
+      .commit(
+        `update data from ${new Date().toLocaleString("en-nz", {
+          timeZone: "Pacific/Auckland",
+        })}`
+      )
+      .push(["-u", "origin", "main"], () => console.log("pushed"));
+  });
 }
 
 main();
