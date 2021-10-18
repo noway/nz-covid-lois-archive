@@ -9,7 +9,16 @@ async function fetchLois() {
   const $ = cheerio.load(body);
   const table = $(".view-content .views-table");
 
-  const trs = $(table).find("tr");
+  const ths = $(table).find("thead th");
+
+  const headings: string[] = [];
+  ths.each((i, th) => {
+    const text = $(th).text().trim();
+    headings.push(text);
+  });
+  console.log(headings);
+
+  const trs = $(table).find("tbody tr");
   trs.each((i, tr) => {
     const tds = $(tr).find("td");
     const texts: string[] = [];
@@ -17,7 +26,7 @@ async function fetchLois() {
       texts.push($(td).text().trim());
       // console.log('tdText',)
     });
-    console.log(texts);
+    // console.log(texts);
   });
 
   //   console.log("body", body);
