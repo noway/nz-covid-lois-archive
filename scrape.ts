@@ -3,12 +3,22 @@ import cheerio from "cheerio";
 interface LOI {
   "Location name": string;
   Address: string;
-  // 'Day': string
-  // 'Times': string
+  Day: string;
+  Times: string;
   "What to do": string;
   Updated: string;
 }
 type LOIField = keyof LOI;
+
+interface ResultLOI {
+  "Location name": string;
+  Address: string;
+  "Start date": string;
+  "End date": string;
+  "What to do": string;
+  Updated: string;
+}
+
 async function fetchLois() {
   const res = await fetch(
     "https://www.health.govt.nz/our-work/diseases-and-conditions/covid-19-novel-coronavirus/covid-19-health-advice-public/contact-tracing-covid-19/covid-19-contact-tracing-locations-interest"
@@ -29,9 +39,21 @@ async function fetchLois() {
   const trs = $(table).find("tbody tr");
   trs.each((i, tr) => {
     const tds = $(tr).find("td");
-    const loi: Partial<Record<LOIField, string>> = {};
+    const loi: Partial<ResultLOI> = {};
     tds.each((i, td) => {
       const heading = headings[i];
+      if (heading === "Day") {
+        return;
+      }
+      if (heading === "Times") {
+        const dates = $(td).find('[datatype="xsd:dateTime"]');
+        const [startDate, endDate] = dates
+          .toArray()
+          .map((date) => $(date).attr("content"));
+        loi["Start date"] = startDate;
+        loi["End date"] = endDate;
+        return;
+      }
       const text = $(td).text().trim();
       loi[heading] = text;
     });
