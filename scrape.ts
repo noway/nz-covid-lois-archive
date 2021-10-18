@@ -34,7 +34,6 @@ async function fetchLois() {
     const text = $(th).text().trim() as LOIField;
     headings.push(text);
   });
-  console.log(headings);
 
   const trs = $(table).find("tbody tr");
   trs.each((i, tr) => {
@@ -57,7 +56,6 @@ async function fetchLois() {
       const text = $(td).text().trim();
       loi[heading] = text;
     });
-    console.log(loi);
   });
 }
 
