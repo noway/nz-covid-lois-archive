@@ -67,18 +67,14 @@ async function fetchLois() {
 }
 
 function getId(loi: Partial<ResultLOI>): string {
-  return `${loi["Location name"]}${loi["Start date"]}`
+  return `${loi["Location name"]}${loi["Start date"]}`;
 }
 
 async function main() {
   const existingLois: Partial<ResultLOI>[] = fromNdjson(
     readFileSync("all-lois.ndjson", "utf8")
   );
-  const existingLoiIds = [
-    ...new Set(
-      existingLois.map(getId)
-    ),
-  ];
+  const existingLoiIds = [...new Set(existingLois.map(getId))];
   console.log("existingLoiIds.length", existingLoiIds.length);
 
   const lois = await fetchLois();
