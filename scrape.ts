@@ -36,6 +36,7 @@ async function fetchLois() {
   });
 
   const trs = $(table).find("tbody tr");
+  const lois: Partial<ResultLOI>[] = []
   trs.each((i, tr) => {
     const tds = $(tr).find("td");
     const loi: Partial<ResultLOI> = {};
@@ -56,7 +57,9 @@ async function fetchLois() {
       const text = $(td).text().trim();
       loi[heading] = text;
     });
+    lois.push(loi)
   });
+  return lois
 }
 
 async function main() {
